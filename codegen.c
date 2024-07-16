@@ -144,7 +144,7 @@ codegen_exp_id (struct AST *ast)
         if (!((sym->name_space == NS_ARG) && (sym->offset <= 40))) { // other than 1st-6th arguments
             // char型，int型には非対応
             emit_code (ast, "\tmovq    %d(%%rbp), %%rax \t# %s, %d\n",
-                       offset, sym->name, sym->offset);
+                        offset, sym->name, sym->offset);
         }
         emit_code (ast, "\tpushq   %s\n", reg);
 	break;
@@ -170,16 +170,16 @@ static void
 codegen_exp_funcall (struct AST *ast_func)
 {
     struct AST *ast, *ast_exp;
-    int args_size = 0, narg = 0;
+    int args_size = 0, narg = 0;//nargは引数の数
     char *regs[] = {"%rbx", "%r12", "%r13", "%r14", "%r15"};
 
     assert (!strcmp (ast_func->ast_type, "AST_expression_funcall1")
-	    || !strcmp (ast_func->ast_type, "AST_expression_funcall2"));
+        || !strcmp (ast_func->ast_type, "AST_expression_funcall2"));
 
     // count "narg" first
     if (!strcmp (ast_func->ast_type, "AST_expression_funcall1")) {
-	for (ast = ast_func->child [1], narg = 1; ; ast = ast->child [0], narg++) {
-	    if (!strcmp (ast->ast_type, "AST_argument_expression_list_single"))
+        for (ast = ast_func->child [1], narg = 1; ; ast = ast->child [0], narg++) {
+            if (!strcmp (ast->ast_type, "AST_argument_expression_list_single"))
                 break;
         }
     } 
@@ -197,37 +197,37 @@ codegen_exp_funcall (struct AST *ast_func)
             emit_code (ast_func, "\tsubq    $8, %%rsp\n");
         }
 
-	for (ast = ast_func->child [1]; ; ast = ast->child [0]) {
-	    if (!strcmp (ast->ast_type,
-                         "AST_argument_expression_list_single")) {
-		ast_exp = ast->child [0];
+        for (ast = ast_func->child [1]; ; ast = ast->child [0]) {
+            if (!strcmp (ast->ast_type,
+                        "AST_argument_expression_list_single")) {
+                ast_exp = ast->child [0];
             } else if (!strcmp (ast->ast_type,
                                 "AST_argument_expression_list_pair")) {
-		ast_exp = ast->child [1];
+                ast_exp = ast->child [1];
             } else {
                 assert (0);
-	    }
-            args_size += ROUNDUP_LONG (ast_exp->type->size);
-	    codegen_exp (ast_exp);
-	    if (!strcmp (ast->ast_type,
-                         "AST_argument_expression_list_single"))
+            }
+            args_size += ROUNDUP_LONG (ast_exp->type->size);//何をしている？
+            codegen_exp (ast_exp);
+            if (!strcmp (ast->ast_type,
+                        "AST_argument_expression_list_single"))
                 break;
-	}
+        }
     }
 
     codegen_exp (ast_func->child [0]);
-    emit_code (ast_func, "\tpopq    %%r11\n");
+    emit_code (ast_func, "\tpopq    %%r11\n");//関数のポインタ？
 
     // move 1st-6th args to registers
     for (int i = 1; i <= narg && i <= 6; i++) {
         char *regs[] = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
-        emit_code (ast_func, "\tpopq    %s\n", regs [i - 1]);
+        emit_code (ast_func, "\tpopq    %s\n", regs [i - 1]);//引数をレジスタに格納？
     }
     emit_code (ast_func, "\tmovb    $0, %%al\n"); // for printf
-    emit_code (ast_func, "\tcall    *%%r11\n");
+    emit_code (ast_func, "\tcall    *%%r11\n");//関数呼び出し？
     if (narg >= 7) {
         emit_code (ast_func, "\taddq    $%d, %%rsp \t# pop args\n",
-                   ROUNDUP_STACK(args_size) - 48);
+                    ROUNDUP_STACK(args_size) - 48);
     }
     // restore callee-saved registers from the stack
     emit_code (ast_func, "# restore callee-saved registers\n");
@@ -235,7 +235,7 @@ codegen_exp_funcall (struct AST *ast_func)
         emit_code (ast_func, "\tpopq   %s\n", regs [i - 1]);
     }
 
-    emit_code (ast_func, "\tpushq   %%rax\n");
+    emit_code (ast_func, "\tpushq   %%rax\n");//関数の返り値を保存
 }
 
 static void
@@ -249,19 +249,30 @@ codegen_exp (struct AST *ast)
     } else if (!strcmp (ast->ast_type, "AST_expression_string")) {
         struct String *string = string_lookup (ast->u.id);
         assert (string != NULL);
-	emit_code (ast, "\tleaq    %s.%s(%%rip), %%rax \t# \"%s\"\n",
-                   LABEL_PREFIX, string->label, string->data);
+        emit_code (ast, "\tleaq    %s.%s(%%rip), %%rax \t# \"%s\"\n",
+                    LABEL_PREFIX, string->label, string->data);
         emit_code (ast, "\tpushq   %%rax\n");
     } else if (!strcmp (ast->ast_type, "AST_expression_id")) {
-	codegen_exp_id (ast);
+        codegen_exp_id (ast);
     } else if (   !strcmp (ast->ast_type, "AST_expression_funcall1")
-               || !strcmp (ast->ast_type, "AST_expression_funcall2")) {
+                || !strcmp (ast->ast_type, "AST_expression_funcall2")) {
 	codegen_exp_funcall (ast);
-/*
-    } else if (.....) {  // 他の expression の場合のコードをここに追加する
- */
+    }else if(!strcmp (ast->ast_type, "AST_expression_paren")){// ( expression )
+
+    }else if(!strcmp (ast->ast_type, "AST_expression_unary")){//単項演算子 expression
+    }
+    //二項演算子
+    else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
+    }else if(!strcmp (ast->ast_type, "AST_expression_lor")){// ||
+    }else if(!strcmp (ast->ast_type, "AST_expression_land")){// &&
+    }else if(!strcmp (ast->ast_type, "AST_expression_eq")){// ==
+    }else if(!strcmp (ast->ast_type, "AST_expression_less")){// <
+    }else if(!strcmp (ast->ast_type, "AST_expression_add")){// +
+    }else if(!strcmp (ast->ast_type, "AST_expression_sub")){// -
+    }else if(!strcmp (ast->ast_type, "AST_expression_mul")){// *
+    }else if(!strcmp (ast->ast_type, "AST_expression_div")){// /
     } else {
-//        assert (0);
+        assert (0);
     }
 }
 
@@ -269,21 +280,24 @@ static void
 codegen_stmt (struct AST *ast_stmt)
 {
     if (!strcmp (ast_stmt->ast_type, "AST_statement_exp")) {
-	if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_single")) {
-	    codegen_exp (ast_stmt->child [0]->child [0]);
-            emit_code (ast_stmt, "\taddq    $8, %%rsp\n");
-	} else if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_null")) {
-            /* nothing to do */
+        if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_single")) {
+            codegen_exp (ast_stmt->child [0]->child [0]);
+                emit_code (ast_stmt, "\taddq    $8, %%rsp\n");
+        } else if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_null")) {
+                /* nothing to do */
         } else {
             assert (0);
         }
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_comp")) {
-	codegen_block (ast_stmt->child [0]);
-/*
-    } else if (.....) {  // 他の statement の場合のコードをここに追加する
- */
+        codegen_block (ast_stmt->child [0]);
+    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_if")) {
+    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_ifelse")) {
+    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_while")) {
+    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_goto")) {
+    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_label")) {
+    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_return")) {
     } else {
-//        assert (0);
+        assert (0);
     }
 }
 
@@ -339,7 +353,7 @@ codegen_func (struct AST *ast)
     /* string literals */
     head = sym_table.string;
     if (head != NULL) {
-	emit_code (ast, "\t%s\n", RDATA_SECTION);
+        emit_code (ast, "\t%s\n", RDATA_SECTION);
         for (string = head; string != NULL; string = string->next) {
             emit_code (ast, "%s.%s:\n", LABEL_PREFIX, string->label);
             emit_code (ast, "\t.ascii  \"%s\\0\"\n", string->data);
@@ -366,7 +380,7 @@ codegen_func (struct AST *ast)
     emit_code (ast, "%s.RE.%s:\n", LABEL_PREFIX, func_name);
     emit_code (ast, "\tmovq    %%rbp, %%rsp\n");
     emit_code (ast, "\tpopq    %%rbp\n");
-    emit_code (ast, "\tretq\n");
+    emit_code (ast, "\tretq\n");//main関数終了の時はexitで終わる必要あり
 
     codegen_end_function ();
 }
@@ -386,15 +400,14 @@ codegen (void)
             assert (0);
 
         if (!strcmp (ast_ext->ast_type, "AST_external_declaration_func"))
-	    codegen_func (ast_ext->child [0]);
+            codegen_func (ast_ext->child [0]);
         else if (!strcmp (ast_ext->ast_type, "AST_external_declaration_dec"))
-	    codegen_dec (ast_ext->child [0]);
+            codegen_dec (ast_ext->child [0]);
         else 
             assert (0);
 
-	if (ast == ast_root)
-	    break;
-	ast = ast->parent;
+        if (ast == ast_root) break;
+        ast = ast->parent;
     }
 }
 /* ---------------------------------------------------------------------- */
