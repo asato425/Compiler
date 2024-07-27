@@ -30,6 +30,7 @@
 #endif
 static char *func_name;
 static int   total_local_size;
+int label_count = 0;
 
 static void emit_code (struct AST *ast, char *fmt, ...);
 static void codegen_begin_block (struct AST *ast);
@@ -121,7 +122,6 @@ show_AST(struct AST *ast)
     printf("#u.long_val:%ld\n",ast->u.long_val);
     fflush(stdout);
 }
-
 static void
 codegen_exp_id (struct AST *ast)//変数の値をスタックにプッシュ
 {
@@ -317,6 +317,18 @@ codegen_stmt (struct AST *ast_stmt)
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_if")) {
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_ifelse")) {
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_while")) {
+        if(ast_stmt->num_child != 2) assert(0);
+
+        emit_code (ast_stmt, "label%d:\n", label_count);
+        codegen_exp (ast_stmt->child[0]);//whileの条件式の正誤判定をし、結果(trueなら1)をスタックに格納
+        emit_code (ast_stmt, "\tpopq   %%rax\n");//条件式の正誤を取得
+        emit_code (ast_stmt, "\tcmpq   $1, %%rax\n");//正誤確認、フラグセット
+        emit_code (ast_stmt, "\tjne    label%d\n", label_count+1);//間違っていればジャンプ
+        codegen_stmt (ast_stmt->child [1]);//whileの中身
+        emit_code (ast_stmt, "\tjmp    label%d\n", label_count);//ループ
+
+        emit_code (ast_stmt, "label%d:\n", label_count+1);
+        label_count += 2;
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_goto")) {
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_label")) {
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_return")) {

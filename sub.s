@@ -14,6 +14,14 @@ _main:
 	movq    -8(%rbp), %rax 	# i, 0
 	pushq   %rax
 	addq    $8, %rsp
+label0:
+	movq    $0x1, %rax
+	pushq   %rax
+	popq  %rax
+	cmpq  $0, %rax
+	jne    label1
+	jmp    label0
+label1:
 # save callee-saved registers
 	pushq   %rbx
 	pushq   %rbx
