@@ -110,7 +110,7 @@ is_library_func (char *libname)
 // ここから下は好きに修正や拡張をしても構わない
 
 static void
-codegen_exp_id (struct AST *ast)
+codegen_exp_id (struct AST *ast)//変数の値をスタックにプッシュ
 {
     int offset;
     char *reg = "%rax";
@@ -171,7 +171,7 @@ codegen_exp_funcall (struct AST *ast_func)
 {
     struct AST *ast, *ast_exp;
     int args_size = 0, narg = 0;//nargは引数の数
-    char *regs[] = {"%rbx", "%r12", "%r13", "%r14", "%r15"};
+    char *regs[] = {"%rbx", "%rbx", "%r12", "%r13", "%r14", "%r15"};
 
     assert (!strcmp (ast_func->ast_type, "AST_expression_funcall1")
         || !strcmp (ast_func->ast_type, "AST_expression_funcall2"));
@@ -186,7 +186,7 @@ codegen_exp_funcall (struct AST *ast_func)
 
     // save all callee-saved registers to the stack
     emit_code (ast_func, "# save callee-saved registers\n");
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= 6; i++) {
         emit_code (ast_func, "\tpushq   %s\n", regs [i - 1]);
     }
 
@@ -231,7 +231,7 @@ codegen_exp_funcall (struct AST *ast_func)
     }
     // restore callee-saved registers from the stack
     emit_code (ast_func, "# restore callee-saved registers\n");
-    for (int i = 5; i >= 1; i--) {
+    for (int i = 6; i >= 1; i--) {
         emit_code (ast_func, "\tpopq   %s\n", regs [i - 1]);
     }
 
@@ -263,6 +263,10 @@ codegen_exp (struct AST *ast)
     }
     //二項演算子
     else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
+        if(ast->num_child != 2) assert(0);
+        codegen_exp(ast->child [1]);//右辺の結果をスタックにプッシュ
+        //左辺の変数のメモリアドレス(最初は変数名できるようにしよう)を計算し、そこにスタックの値をポップして格納
+
     }else if(!strcmp (ast->ast_type, "AST_expression_lor")){// ||
     }else if(!strcmp (ast->ast_type, "AST_expression_land")){// &&
     }else if(!strcmp (ast->ast_type, "AST_expression_eq")){// ==

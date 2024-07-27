@@ -10,6 +10,7 @@ _main:
 	subq    $0, %rsp
 # save callee-saved registers
 	pushq   %rbx
+	pushq   %rbx
 	pushq   %r12
 	pushq   %r13
 	pushq   %r14
@@ -33,6 +34,7 @@ _main:
 	popq   %r14
 	popq   %r13
 	popq   %r12
+	popq   %rbx
 	popq   %rbx
 	pushq   %rax
 	addq    $8, %rsp
