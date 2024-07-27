@@ -109,6 +109,19 @@ is_library_func (char *libname)
 /* ---------------------------------------------------------------------- */
 // ここから下は好きに修正や拡張をしても構わない
 
+//デバッグ用
+static void
+show_AST(struct AST *ast)
+{
+    printf("#ast_type:%s\n",ast->ast_type);
+    printf("#parent_ast_type:%s\n",ast->parent->ast_type);
+    printf("#nth:%d\n",ast->nth);
+    printf("#num_child:%d\n",ast->num_child);
+    printf("#u.id:%s\n",ast->u.id);
+    printf("#u.long_val:%ld\n",ast->u.long_val);
+    fflush(stdout);
+}
+
 static void
 codegen_exp_id (struct AST *ast)//変数の値をスタックにプッシュ
 {
@@ -143,6 +156,10 @@ codegen_exp_id (struct AST *ast)//変数の値をスタックにプッシュ
 
         if (!((sym->name_space == NS_ARG) && (sym->offset <= 40))) { // other than 1st-6th arguments
             // char型，int型には非対応
+            if(!strcmp (ast->parent->ast_type, "AST_expression_assign")){
+                emit_code (ast, "\tpopq    %d(%%rbp)\t# %s, %d\n",
+                        offset, sym->name, sym->offset);//=の際に右辺の結果をスタックから取得し、変数に格納
+            }
             emit_code (ast, "\tmovq    %d(%%rbp), %%rax \t# %s, %d\n",
                         offset, sym->name, sym->offset);
         }
@@ -158,6 +175,9 @@ codegen_exp_id (struct AST *ast)//変数の値をスタックにプッシュ
             }
             emit_code (ast, "\tpushq   %%rax\n");
         } else {
+            if(!strcmp (ast->parent->ast_type, "AST_expression_assign")){
+                emit_code (ast, "\tpopq   _%s(%%rip)\n", sym->name);//=の際に右辺の結果をスタックから取得し、変数に格納
+            }
             emit_code (ast, "\tpushq   _%s(%%rip)\n", sym->name);
         }
 	break;
@@ -265,8 +285,8 @@ codegen_exp (struct AST *ast)
     else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
         if(ast->num_child != 2) assert(0);
         codegen_exp(ast->child [1]);//右辺の結果をスタックにプッシュ
-        //左辺の変数のメモリアドレス(最初は変数名できるようにしよう)を計算し、そこにスタックの値をポップして格納
-
+        codegen_exp(ast->child [0]);//右辺の結果を変数に格納,exp_idに=の時の内容を追加
+        
     }else if(!strcmp (ast->ast_type, "AST_expression_lor")){// ||
     }else if(!strcmp (ast->ast_type, "AST_expression_land")){// &&
     }else if(!strcmp (ast->ast_type, "AST_expression_eq")){// ==
@@ -384,8 +404,12 @@ codegen_func (struct AST *ast)
     emit_code (ast, "%s.RE.%s:\n", LABEL_PREFIX, func_name);
     emit_code (ast, "\tmovq    %%rbp, %%rsp\n");
     emit_code (ast, "\tpopq    %%rbp\n");
-    emit_code (ast, "\tretq\n");//main関数終了の時はexitで終わる必要あり
-
+    if(!strcmp (func_name, "main")){
+        emit_code (ast, "\tmovl  $0, %%edi\n");
+        emit_code (ast, "\tcallq  _exit\n");
+    }else{
+        emit_code (ast, "\tretq\n");
+    }
     codegen_end_function ();
 }
 /* ---------------------------------------------------------------------- */
@@ -414,4 +438,6 @@ codegen (void)
         ast = ast->parent;
     }
 }
+
 /* ---------------------------------------------------------------------- */
+

@@ -1,5 +1,8 @@
-long i;
-
+/* comment #1 */
+int printf ();
+/* comment #2 */
 int main(){
-   i = 10;
+   long i;
+   i  = 2;
+   printf("%d\n",i);
 }
