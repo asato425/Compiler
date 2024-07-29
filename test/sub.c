@@ -1,12 +1,13 @@
 /* comment #1 */
 int printf ();
+long i;
 /* comment #2 */
 int main(){
-   long i;
-   i  = 10;
-   while(0 < i){
-      printf("%d\n",i);
-      i = i - 1;
+   i  = 5;
+   if(6 < i || 9 < i){
+      printf ("%s\n","if");
    }
-   printf("%d\n",i);
+   else{
+      printf ("%s\n","else");
+   }
 }
