@@ -41,4 +41,5 @@ _main:
 L.XCC.RE.main:
 	movq    %rbp, %rsp
 	popq    %rbp
-	retq
+	movl  $0, %edi
+	callq  _exit

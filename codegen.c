@@ -280,24 +280,33 @@ codegen_exp (struct AST *ast)
     }else if(!strcmp (ast->ast_type, "AST_expression_paren")){// ( expression )
 
     }else if(!strcmp (ast->ast_type, "AST_expression_unary")){//単項演算子 expression
-    }
-    //二項演算子
-    else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
+    }else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
         if(ast->num_child != 2) assert(0);
         codegen_exp(ast->child [1]);//右辺の結果をスタックにプッシュ
         codegen_exp(ast->child [0]);//右辺の結果を変数に格納,exp_idに=の時の内容を追加
-        
-    }else if(!strcmp (ast->ast_type, "AST_expression_lor")){// ||
-    }else if(!strcmp (ast->ast_type, "AST_expression_land")){// &&
-    }else if(!strcmp (ast->ast_type, "AST_expression_eq")){// ==
-    }else if(!strcmp (ast->ast_type, "AST_expression_less")){// <
-    }else if(!strcmp (ast->ast_type, "AST_expression_add")){// +
-    }else if(!strcmp (ast->ast_type, "AST_expression_sub")){// -
-    }else if(!strcmp (ast->ast_type, "AST_expression_mul")){// *
-    }else if(!strcmp (ast->ast_type, "AST_expression_div")){// /
-    } else {
-        assert (0);
     }
+    //二項演算子,=以外
+    else{
+        codegen_exp(ast->child [1]);//右辺の結果をスタックにプッシュ
+        codegen_exp(ast->child [0]);//左辺の結果をスタックにプッシュ
+        emit_code (ast, "\tpopq   %%rax\n");//左辺の結果をレジスタに格納
+        emit_code (ast, "\tpopq   %%rbx\n");//右辺の結果をレジスタに格納
+
+        if(!strcmp (ast->ast_type, "AST_expression_lor")){// ||
+        }else if(!strcmp (ast->ast_type, "AST_expression_land")){// &&
+        }else if(!strcmp (ast->ast_type, "AST_expression_eq")){// ==
+        }else if(!strcmp (ast->ast_type, "AST_expression_less")){// <
+            emit_code (ast, "\tcmpq   %%rax, %%rbx\n");//比較
+            emit_code (ast, "\tjle    label%d\n", label_count+1);//間違っていれば(左辺>=右辺)ジャンプ
+        }else if(!strcmp (ast->ast_type, "AST_expression_add")){// +
+        }else if(!strcmp (ast->ast_type, "AST_expression_sub")){// -
+        }else if(!strcmp (ast->ast_type, "AST_expression_mul")){// *
+        }else if(!strcmp (ast->ast_type, "AST_expression_div")){// /
+        } else {
+            assert (0);
+        }
+    }
+    
 }
 
 static void
@@ -316,14 +325,16 @@ codegen_stmt (struct AST *ast_stmt)
         codegen_block (ast_stmt->child [0]);
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_if")) {
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_ifelse")) {
-    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_while")) {
+    } else if (!strcmp (ast_stmt->ast_type, "AST_statement_while")) {//条件が二項演算子以外でもできるようにするなら毎回条件によってtrue(0以外),false(0)を結果にした方が良さそう,オプションに回す
         if(ast_stmt->num_child != 2) assert(0);
 
         emit_code (ast_stmt, "label%d:\n", label_count);
-        codegen_exp (ast_stmt->child[0]);//whileの条件式の正誤判定をし、結果(trueなら1)をスタックに格納
-        emit_code (ast_stmt, "\tpopq   %%rax\n");//条件式の正誤を取得
-        emit_code (ast_stmt, "\tcmpq   $1, %%rax\n");//正誤確認、フラグセット
-        emit_code (ast_stmt, "\tjne    label%d\n", label_count+1);//間違っていればジャンプ
+        codegen_exp (ast_stmt->child[0]);//whileの条件式の正誤判定をし、誤ならlabel_count+1にジャンプ
+
+        //この2行はwhileの条件が1,0の時でも動くためのサブ
+        // emit_code (ast_stmt, "\tcmpq   $1, %%rax\n");//正誤確認、フラグセット
+        // emit_code (ast_stmt, "\tjne    label%d\n", label_count+1);//間違っていればジャンプ
+        
         codegen_stmt (ast_stmt->child [1]);//whileの中身
         emit_code (ast_stmt, "\tjmp    label%d\n", label_count);//ループ
 
