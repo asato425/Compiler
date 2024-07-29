@@ -10,4 +10,5 @@ int main(){
    else{
       printf ("%s\n","else");
    }
+   return 0;
 }

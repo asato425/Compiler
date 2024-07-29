@@ -348,6 +348,9 @@ codegen_exp (struct AST *ast)
                 emit_code (ast, "\tsubq   %%rbx, %%rax\n");//差
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush
             }else if(!strcmp (ast->ast_type, "AST_expression_mul")){// *
+                emit_code (ast, "\tmovq   $0, %%rdx\n");
+                emit_code (ast, "\timulq   %%rbx\n");//積
+                emit_code (ast, "\tpushq   %%rax\n");//結果をpush(下位64ビットのみ)
             }else if(!strcmp (ast->ast_type, "AST_expression_div")){// /
             } else {
                 assert (0);
@@ -363,7 +366,7 @@ codegen_stmt (struct AST *ast_stmt)
     if (!strcmp (ast_stmt->ast_type, "AST_statement_exp")) {
         if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_single")) {
             codegen_exp (ast_stmt->child [0]->child [0]);
-                emit_code (ast_stmt, "\taddq    $8, %%rsp\n");
+            emit_code (ast_stmt, "\taddq    $8, %%rsp\n");
         } else if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_null")) {
                 /* nothing to do */
         } else {
@@ -407,6 +410,14 @@ codegen_stmt (struct AST *ast_stmt)
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_goto")) {
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_label")) {
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_return")) {
+        if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_single")) {
+            codegen_exp (ast_stmt->child [0]->child [0]);
+            emit_code (ast_stmt, "\taddq    $8, %%rsp\n");
+        } else if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_null")) {
+                /* nothing to do */
+        } else {
+            assert (0);
+        }
     } else {
         assert (0);
     }

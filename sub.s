@@ -115,6 +115,9 @@ label0:
 	pushq   %rax
 	addq    $8, %rsp
 label1:
+	movq    $0x0, %rax
+	pushq   %rax
+	addq    $8, %rsp
 L.XCC.RE.main:
 	movq    %rbp, %rsp
 	popq    %rbp
