@@ -3,10 +3,10 @@ int printf ();
 /* comment #2 */
 int main(){
    long i;
-   i  = 1;
-   while(i < 10){
+   i  = 10;
+   while(0 < i){
       printf("%d\n",i);
-      i = 0;
+      i = i - 1;
    }
    printf("%d\n",i);
 }
