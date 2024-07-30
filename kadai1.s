@@ -38,8 +38,12 @@ label0:
 	pushq   %rax
 	popq   %rax
 	popq   %rbx
-	subq   %rax, %rbx
-	pushq   %rbx
+	cmpq   %rax, %rbx
+	pushq   $1
+	ja    label2
+	pushq   %rax
+	pushq   $0
+label2:
 	popq   %rax
 	cmpq   $0, %rax
 	jbe    label1

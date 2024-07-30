@@ -278,14 +278,16 @@ codegen_exp (struct AST *ast)
                 || !strcmp (ast->ast_type, "AST_expression_funcall2")) {
 	codegen_exp_funcall (ast);
     }else if(!strcmp (ast->ast_type, "AST_expression_paren")){// ( expression )
-
+        printf("#(expression)\n");
+        if(ast->num_child != 1) assert(0);
+        codegen_exp(ast->child [0]);
     }else if(!strcmp (ast->ast_type, "AST_expression_unary")){//単項演算子 expression
     }else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
         if(ast->num_child != 2) assert(0);
         codegen_exp(ast->child [1]);//右辺の結果をスタックにプッシュ
         codegen_exp(ast->child [0]);//右辺の結果を変数に格納,exp_idに=の時の内容を追加
     }
-    //二項演算子,=以外,比較結果は1以上ならtrue,0以下がfalse
+    //二項演算子,=以外,比較結果は1以上ならtrue,0がfalse
     else{
         if(!strcmp (ast->ast_type, "AST_expression_lor")){// ||
             printf("#||\n");
@@ -327,12 +329,14 @@ codegen_exp (struct AST *ast)
             emit_code (ast, "\tpopq   %%rax\n");//左の結果をレジスタに格納
             emit_code (ast, "\tpopq   %%rbx\n");//右の結果をレジスタに格納
             if(!strcmp (ast->ast_type, "AST_expression_eq")){// ==
+                printf("#==\n");
                 emit_code (ast, "\tcmpq   %%rax, %%rbx\n");//比較
                 emit_code (ast, "\tsete   %%al\n");//結果を代入
                 emit_code (ast, "\tmovzbq   %%al, %%rax\n");//ゼロ拡張
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush
             }
             else if(!strcmp (ast->ast_type, "AST_expression_less")){// <
+                printf("#<\n");
                 int label1 = label_count;
                 label_count += 1;
                 emit_code (ast, "\tcmpq   %%rax, %%rbx\n");//比較
@@ -342,16 +346,23 @@ codegen_exp (struct AST *ast)
                 emit_code (ast, "\tpushq   $0\n");//結果をpush
                 emit_code (ast, "label%d:\n", label1);
             }else if(!strcmp (ast->ast_type, "AST_expression_add")){// +
+                printf("#+\n");
                 emit_code (ast, "\taddq   %%rbx, %%rax\n");//和
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush
             }else if(!strcmp (ast->ast_type, "AST_expression_sub")){// -
+                printf("#-\n");
                 emit_code (ast, "\tsubq   %%rbx, %%rax\n");//差
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush
             }else if(!strcmp (ast->ast_type, "AST_expression_mul")){// *
+                printf("#*\n");
                 emit_code (ast, "\tmovq   $0, %%rdx\n");
                 emit_code (ast, "\timulq   %%rbx\n");//積
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush(下位64ビットのみ)
             }else if(!strcmp (ast->ast_type, "AST_expression_div")){// /
+                printf("#/\n");
+                emit_code (ast, "\tcltd\n");
+                emit_code (ast, "\tdivq   %%rbx\n");//商
+                emit_code (ast, "\tpushq   %%rax\n");//結果をpush
             } else {
                 assert (0);
             }
