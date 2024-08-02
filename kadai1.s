@@ -24,13 +24,21 @@ _main:
 	subq    $0, %rsp
 	movq    $0x5, %rax
 	pushq   %rax
-	popq   _i(%rip)
-	pushq   _i(%rip)
+	leaq    _i(%rip), %rax
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	movq    $0x0, %rax
 	pushq   %rax
-	popq   _sum(%rip)
-	pushq   _sum(%rip)
+	leaq    _sum(%rip), %rax
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 label0:
 	pushq   _i(%rip)
@@ -38,6 +46,7 @@ label0:
 	pushq   %rax
 	popq   %rax
 	popq   %rbx
+#<
 	cmpq   %rax, %rbx
 	pushq   $1
 	ja    label2
@@ -48,12 +57,14 @@ label2:
 	cmpq   $0, %rax
 	jbe    label1
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	pushq   _i(%rip)
 	leaq    L.XCC.STR0(%rip), %rax 	# "i = %ld\n"
 	pushq   %rax
@@ -65,42 +76,56 @@ label2:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 	pushq   _i(%rip)
 	pushq   _sum(%rip)
 	popq   %rax
 	popq   %rbx
+#+
 	addq   %rbx, %rax
 	pushq   %rax
-	popq   _sum(%rip)
-	pushq   _sum(%rip)
+	leaq    _sum(%rip), %rax
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	movq    $0x1, %rax
 	pushq   %rax
 	pushq   _i(%rip)
 	popq   %rax
 	popq   %rbx
+#-
 	subq   %rbx, %rax
 	pushq   %rax
-	popq   _i(%rip)
-	pushq   _i(%rip)
+	leaq    _i(%rip), %rax
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	jmp    label0
 label1:
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	pushq   _sum(%rip)
 	leaq    L.XCC.STR1(%rip), %rax 	# "sum = %ld\n"
 	pushq   %rax
@@ -112,12 +137,14 @@ label1:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 L.XCC.RE.main:

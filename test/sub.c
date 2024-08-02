@@ -1,16 +1,15 @@
 /* comment #1 */
 int printf ();
-long i;
+
 /* comment #2 */
 int main(){
-   i  = 11/2;
-   printf ("%ld\n",i);
-   if(6 < i || 9 < i){
-      printf ("%s\n","if");
-      printf ("%ld\n",i);
+   long i;
+   i  = 1;
+   printf("aaaaa\n");
+   printf("i is %ld\n", i);
+   while(i < 5){
+      printf("The value of i is %ld\n", i);
+      i = i + 1;
    }
-   else{
-      printf ("%s\n","else");
-   }
-   return 0;
+   printf("is %ld\n", i);
 }

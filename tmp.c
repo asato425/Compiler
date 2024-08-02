@@ -162,7 +162,7 @@ codegen_exp_id (struct AST *ast)//変数の値をスタックにプッシュ
         }
 
         if(!strcmp (ast->parent->ast_type, "AST_expression_assign")){
-            emit_code (ast, "\tleaq    %d(%%rbp), %%rax\t# %s, %d\n",
+            emit_code (ast, "\tleaq    _%d(%%rbp), %%rax\t# %s, %d\n",
                     offset, sym->name, sym->offset);
             emit_code (ast, "\tpushq   %%rax\n");//=の左辺のアドレスをpush
         }else{
@@ -180,6 +180,7 @@ codegen_exp_id (struct AST *ast)//変数の値をスタックにプッシュ
             emit_code (ast, "\tpushq   %%rax\n");
         } else {
             if(!strcmp (ast->parent->ast_type, "AST_expression_assign")){
+                //emit_code (ast, "\tpopq   _%s(%%rip)\n", sym->name);//=の際に右辺の結果をスタックから取得し、変数に格納
                 emit_code (ast, "\tleaq    _%s(%%rip), %%rax\n", sym->name);
                 emit_code (ast, "\tpushq   %%rax\n");//=の左辺のアドレスをpush
             }else{
@@ -291,12 +292,13 @@ codegen_exp (struct AST *ast)
     }else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
         if(ast->num_child != 2) assert(0);
         codegen_exp(ast->child [1]);//右辺の結果をスタックにプッシュ
-        codegen_exp(ast->child [0]);//左辺のアドレスをスタックにプッシュ
+        codegen_exp(ast->child [0]);//左辺の結果を変数に格納,exp_idに=の時の内容を追加
 
+        //修正
         emit_code (ast, "\tpopq   %%rax\n");//左辺のアドレスをスタックから取得
         emit_code (ast, "\tpopq   %%rbx\n");//右辺の結果をスタックから取得
         emit_code (ast, "\tmovq   %%rbx, 0(%%rax)\n");//右辺の結果を左辺に代入
-        emit_code (ast, "\tpushq   %%rbx\n");//右辺の結果をpush
+        emit_code (ast, "\tpopq   %%rbx\n");//右辺の結果をpush
     }
     //二項演算子,=以外,比較結果は1以上ならtrue,0がfalse
     else{

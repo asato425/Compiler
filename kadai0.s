@@ -9,12 +9,14 @@ _main:
 	movq    %rsp, %rbp
 	subq    $0, %rsp
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	movq    $0x14, %rax
 	pushq   %rax
 	movq    $0xa, %rax
@@ -30,12 +32,14 @@ _main:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 L.XCC.RE.main:

@@ -11,6 +11,7 @@ _mrn:
 	pushq   %rdi
 	popq   %rax
 	popq   %rbx
+#<
 	cmpq   %rax, %rbx
 	pushq   $1
 	ja    label3
@@ -27,6 +28,7 @@ label3:
 	pushq   %rdi
 	popq   %rax
 	popq   %rbx
+#==
 	cmpq   %rax, %rbx
 	sete   %al
 	movzbq   %al, %rax
@@ -45,17 +47,20 @@ label2:
 label0:
 	pushq   %rdi
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	movq    $0x1, %rax
 	pushq   %rax
 	pushq   %rdi
 	popq   %rax
 	popq   %rbx
+#-
 	subq   %rbx, %rax
 	pushq   %rax
 	leaq    _mrn(%rip), %rax
@@ -65,22 +70,26 @@ label0:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	movq    $0xa, %rax
 	pushq   %rax
 	popq   %rax
 	popq   %rbx
+#*
 	movq   $0, %rdx
 	imulq   %rbx
 	pushq   %rax
 	popq   %rax
 	popq   %rbx
+#+
 	addq   %rbx, %rax
 	pushq   %rax
 	addq    $8, %rsp
@@ -101,9 +110,13 @@ _main:
 	subq    $16, %rsp
 	movq    $0x0, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 label4:
 	movq    $0xb, %rax
@@ -112,6 +125,7 @@ label4:
 	pushq   %rax
 	popq   %rax
 	popq   %rbx
+#<
 	cmpq   %rax, %rbx
 	pushq   $1
 	ja    label6
@@ -122,19 +136,23 @@ label6:
 	cmpq   $0, %rax
 	jbe    label5
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	movq    -8(%rbp), %rax 	# i, 0
 	pushq   %rax
 	leaq    _mrn(%rip), %rax
@@ -144,12 +162,14 @@ label6:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	movq    -8(%rbp), %rax 	# i, 0
 	pushq   %rax
@@ -164,12 +184,14 @@ label6:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 	movq    $0x1, %rax
@@ -178,11 +200,16 @@ label6:
 	pushq   %rax
 	popq   %rax
 	popq   %rbx
+#+
 	addq   %rbx, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	jmp    label4
 label5:
