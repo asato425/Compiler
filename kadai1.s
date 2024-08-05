@@ -47,10 +47,10 @@ label0:
 	popq   %rax
 	popq   %rbx
 #<
-	cmpq   %rax, %rbx
 	pushq   $1
-	ja    label2
-	pushq   %rax
+	cmpq   %rax, %rbx
+	jg    label2
+	popq   %rax
 	pushq   $0
 label2:
 	popq   %rax

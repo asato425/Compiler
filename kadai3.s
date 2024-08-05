@@ -39,14 +39,35 @@ _swap:
 	pushq   %rbp
 	movq    %rsp, %rbp
 	subq    $16, %rsp
-	popq    -8(%rbp)	# tmp, 0
+	pushq   %rdi
+	popq   %rax
+	movq   0(%rax), %rax
+	pushq   %rax
+	movq    -8(%rbp), %rax 	# tmp, 0
+	leaq    -8(%rbp), %rax	# tmp, 0
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
+	addq    $8, %rsp
+	pushq   %rsi
+	popq   %rax
+	movq   0(%rax), %rax
+	pushq   %rax
+	pushq   %rdi
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
+	addq    $8, %rsp
 	movq    -8(%rbp), %rax 	# tmp, 0
 	pushq   %rax
-	addq    $8, %rsp
-	addq    $8, %rsp
-	popq    -8(%rbp)	# tmp, 0
-	movq    -8(%rbp), %rax 	# tmp, 0
-	pushq   %rax
+	pushq   %rsi
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 L.XCC.RE.swap:
 	movq    %rbp, %rsp
@@ -67,9 +88,13 @@ _bubble_sort:
 #-
 	subq   %rbx, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 label0:
 	movq    -8(%rbp), %rax 	# i, 0
@@ -79,10 +104,10 @@ label0:
 	popq   %rax
 	popq   %rbx
 #<
-	cmpq   %rax, %rbx
 	pushq   $1
-	ja    label2
-	pushq   %rax
+	cmpq   %rax, %rbx
+	jg    label2
+	popq   %rax
 	pushq   $0
 label2:
 	popq   %rax
@@ -90,9 +115,13 @@ label2:
 	jbe    label1
 	movq    $0x0, %rax
 	pushq   %rax
-	popq    -16(%rbp)	# j, 8
 	movq    -16(%rbp), %rax 	# j, 8
+	leaq    -16(%rbp), %rax	# j, 8
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 label3:
 	movq    -8(%rbp), %rax 	# i, 0
@@ -102,41 +131,29 @@ label3:
 	popq   %rax
 	popq   %rbx
 #<
-	cmpq   %rax, %rbx
 	pushq   $1
-	ja    label5
-	pushq   %rax
+	cmpq   %rax, %rbx
+	jg    label5
+	popq   %rax
 	pushq   $0
 label5:
 	popq   %rax
 	cmpq   $0, %rax
 	jbe    label4
+#(expression)
+	movq    -16(%rbp), %rax 	# j, 8
+	pushq   %rax
+	pushq   %rdi
 	popq   %rax
 	popq   %rbx
-#<
-	cmpq   %rax, %rbx
-	pushq   $1
-	ja    label8
+#+
+	imulq   $8, %rbx
+	addq   %rbx, %rax
 	pushq   %rax
-	pushq   $0
-label8:
 	popq   %rax
-	cmpq   $0, %rax
-	jbe    label6
-global:   bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      size, data, 
-label:    
-string:   
-local[0]: j, i, 
-local[1]: 
-local[2]: 
-# save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	movq   0(%rax), %rax
+	pushq   %rax
+#(expression)
 #(expression)
 	movq    $0x1, %rax
 	pushq   %rax
@@ -151,6 +168,48 @@ local[2]:
 	popq   %rax
 	popq   %rbx
 #+
+	imulq   $8, %rbx
+	addq   %rbx, %rax
+	pushq   %rax
+	popq   %rax
+	movq   0(%rax), %rax
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+#<
+	pushq   $1
+	cmpq   %rax, %rbx
+	jg    label8
+	popq   %rax
+	pushq   $0
+label8:
+	popq   %rax
+	cmpq   $0, %rax
+	jbe    label6
+# save callee-saved registers
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
+#(expression)
+	movq    $0x1, %rax
+	pushq   %rax
+	movq    -16(%rbp), %rax 	# j, 8
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+#+
+	addq   %rbx, %rax
+	pushq   %rax
+	pushq   %rdi
+	popq   %rax
+	popq   %rbx
+#+
+	imulq   $8, %rbx
 	addq   %rbx, %rax
 	pushq   %rax
 	movq    -16(%rbp), %rax 	# j, 8
@@ -159,6 +218,7 @@ local[2]:
 	popq   %rax
 	popq   %rbx
 #+
+	imulq   $8, %rbx
 	addq   %rbx, %rax
 	pushq   %rax
 	leaq    _swap(%rip), %rax
@@ -169,12 +229,14 @@ local[2]:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 	jmp    label7
@@ -189,9 +251,13 @@ label7:
 #+
 	addq   %rbx, %rax
 	pushq   %rax
-	popq    -16(%rbp)	# j, 8
 	movq    -16(%rbp), %rax 	# j, 8
+	leaq    -16(%rbp), %rax	# j, 8
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	jmp    label3
 label4:
@@ -204,9 +270,13 @@ label4:
 #-
 	subq   %rbx, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	jmp    label0
 label1:
@@ -223,22 +293,23 @@ _make_array:
 	subq    $16, %rsp
 	movq    $0x0, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
-global:   make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      seed, size, data, 
-label:    
-string:   
-local[0]: i, 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	pushq   %rdx
 	movq    _srandom@GOTPCREL(%rip), %rax
 	pushq   %rax
@@ -247,12 +318,14 @@ local[0]: i,
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 label9:
@@ -262,58 +335,56 @@ label9:
 	popq   %rax
 	popq   %rbx
 #<
-	cmpq   %rax, %rbx
 	pushq   $1
-	ja    label11
-	pushq   %rax
+	cmpq   %rax, %rbx
+	jg    label11
+	popq   %rax
 	pushq   $0
 label11:
 	popq   %rax
 	cmpq   $0, %rax
 	jbe    label10
-global:   make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      seed, size, data, 
-label:    
-string:   
-local[0]: i, 
-local[1]: j, 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	movq    _random@GOTPCREL(%rip), %rax
 	pushq   %rax
 	popq    %r11
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
-	popq    -16(%rbp)	# j, 8
 	movq    -16(%rbp), %rax 	# j, 8
+	leaq    -16(%rbp), %rax	# j, 8
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
-global:   make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      seed, size, data, 
-label:    
-string:   
-local[0]: i, 
-local[1]: j, 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	pushq   %rsi
 	movq    -16(%rbp), %rax 	# j, 8
 	pushq   %rax
@@ -325,13 +396,29 @@ local[1]: j,
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
+#(expression)
+	movq    -8(%rbp), %rax 	# i, 0
+	pushq   %rax
+	pushq   %rdi
+	popq   %rax
+	popq   %rbx
+#+
+	imulq   $8, %rbx
+	addq   %rbx, %rax
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	movq    $0x1, %rax
 	pushq   %rax
@@ -342,9 +429,13 @@ local[1]: j,
 #+
 	addq   %rbx, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	jmp    label9
 label10:
@@ -362,18 +453,28 @@ _main:
 	pushq   %rbp
 	movq    %rsp, %rbp
 	subq    $32, %rsp
-global:   main, make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      argv, argc, 
-label:    
-string:   %ld\n (STR0), 
-local[0]: size, p, i, 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
+#(expression)
+	movq    $0x1, %rax
+	pushq   %rax
+	pushq   %rsi
+	popq   %rax
+	popq   %rbx
+#+
+	imulq   $8, %rbx
+	addq   %rbx, %rax
+	pushq   %rax
+	popq   %rax
+	movq   0(%rax), %rax
+	pushq   %rax
 	movq    _atol@GOTPCREL(%rip), %rax
 	pushq   %rax
 	popq    %r11
@@ -381,29 +482,32 @@ local[0]: size, p, i,
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
-	popq    -24(%rbp)	# size, 16
 	movq    -24(%rbp), %rax 	# size, 16
+	leaq    -24(%rbp), %rax	# size, 16
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
-global:   main, make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      argv, argc, 
-label:    
-string:   %ld\n (STR0), 
-local[0]: size, p, i, 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	movq    -24(%rbp), %rax 	# size, 16
 	pushq   %rax
 	movq    $0x8, %rax
@@ -421,29 +525,32 @@ local[0]: size, p, i,
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
-	popq    -16(%rbp)	# p, 8
 	movq    -16(%rbp), %rax 	# p, 8
+	leaq    -16(%rbp), %rax	# p, 8
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
-global:   main, make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      argv, argc, 
-label:    
-string:   %ld\n (STR0), 
-local[0]: size, p, i, 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	movq    $0x0, %rax
 	pushq   %rax
 	movq    -24(%rbp), %rax 	# size, 16
@@ -459,26 +566,25 @@ local[0]: size, p, i,
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
-global:   main, make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      argv, argc, 
-label:    
-string:   %ld\n (STR0), 
-local[0]: size, p, i, 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
 	movq    -24(%rbp), %rax 	# size, 16
 	pushq   %rax
 	movq    -16(%rbp), %rax 	# p, 8
@@ -491,19 +597,25 @@ local[0]: size, p, i,
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 	movq    $0x0, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 label12:
 	movq    -24(%rbp), %rax 	# size, 16
@@ -513,28 +625,38 @@ label12:
 	popq   %rax
 	popq   %rbx
 #<
-	cmpq   %rax, %rbx
 	pushq   $1
-	ja    label14
-	pushq   %rax
+	cmpq   %rax, %rbx
+	jg    label14
+	popq   %rax
 	pushq   $0
 label14:
 	popq   %rax
 	cmpq   $0, %rax
 	jbe    label13
-global:   main, make_array, bubble_sort, swap, mod, atol, random, srandom, malloc, printf, 
-arg:      argv, argc, 
-label:    
-string:   %ld\n (STR0), 
-local[0]: size, p, i, 
-local[1]: 
 # save callee-saved registers
-	pushq   %rbx
-	pushq   %rbx
-	pushq   %r12
-	pushq   %r13
-	pushq   %r14
-	pushq   %r15
+	pushq   %rcx
+	pushq   %rdx
+	pushq   %rdi
+	pushq   %rsi
+	pushq   %r8
+	pushq   %r9
+	pushq   %r10
+	pushq   %r11
+#(expression)
+	movq    -8(%rbp), %rax 	# i, 0
+	pushq   %rax
+	movq    -16(%rbp), %rax 	# p, 8
+	pushq   %rax
+	popq   %rax
+	popq   %rbx
+#+
+	imulq   $8, %rbx
+	addq   %rbx, %rax
+	pushq   %rax
+	popq   %rax
+	movq   0(%rax), %rax
+	pushq   %rax
 	leaq    L.XCC.STR0(%rip), %rax 	# "%ld\n"
 	pushq   %rax
 	movq    _printf@GOTPCREL(%rip), %rax
@@ -545,12 +667,14 @@ local[1]:
 	movb    $0, %al
 	call    *%r11
 # restore callee-saved registers
-	popq   %r15
-	popq   %r14
-	popq   %r13
-	popq   %r12
-	popq   %rbx
-	popq   %rbx
+	popq   %r11
+	popq   %r10
+	popq   %r9
+	popq   %r8
+	popq   %rsi
+	popq   %rdi
+	popq   %rdx
+	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
 	movq    $0x1, %rax
@@ -562,9 +686,13 @@ local[1]:
 #+
 	addq   %rbx, %rax
 	pushq   %rax
-	popq    -8(%rbp)	# i, 0
 	movq    -8(%rbp), %rax 	# i, 0
+	leaq    -8(%rbp), %rax	# i, 0
 	pushq   %rax
+	popq   %rax
+	popq   %rbx
+	movq   %rbx, 0(%rax)
+	pushq   %rbx
 	addq    $8, %rsp
 	jmp    label12
 label13:
