@@ -11,6 +11,9 @@ int main ()
   while (d < 26) {
     *(c+d) = d+'a';
     d = d + 1;
+
+    printf ("%ld\n", d);
+    printf ("%c\n", *(c+d));
   };
   *(c+26) = 0;
   

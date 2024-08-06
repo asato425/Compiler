@@ -96,7 +96,7 @@ _bubble_sort:
 	movq   %rbx, 0(%rax)
 	pushq   %rbx
 	addq    $8, %rsp
-label0:
+label1000:
 	movq    -8(%rbp), %rax 	# i, 0
 	pushq   %rax
 	movq    $0x0, %rax
@@ -106,13 +106,13 @@ label0:
 #<
 	pushq   $1
 	cmpq   %rax, %rbx
-	jg    label2
+	jg    label1002
 	popq   %rax
 	pushq   $0
-label2:
+label1002:
 	popq   %rax
 	cmpq   $0, %rax
-	jbe    label1
+	jbe    label1001
 	movq    $0x0, %rax
 	pushq   %rax
 	movq    -16(%rbp), %rax 	# j, 8
@@ -123,7 +123,7 @@ label2:
 	movq   %rbx, 0(%rax)
 	pushq   %rbx
 	addq    $8, %rsp
-label3:
+label1003:
 	movq    -8(%rbp), %rax 	# i, 0
 	pushq   %rax
 	movq    -16(%rbp), %rax 	# j, 8
@@ -133,13 +133,13 @@ label3:
 #<
 	pushq   $1
 	cmpq   %rax, %rbx
-	jg    label5
+	jg    label1005
 	popq   %rax
 	pushq   $0
-label5:
+label1005:
 	popq   %rax
 	cmpq   $0, %rax
-	jbe    label4
+	jbe    label1004
 #(expression)
 	movq    -16(%rbp), %rax 	# j, 8
 	pushq   %rax
@@ -179,13 +179,13 @@ label5:
 #<
 	pushq   $1
 	cmpq   %rax, %rbx
-	jg    label8
+	jg    label1008
 	popq   %rax
 	pushq   $0
-label8:
+label1008:
 	popq   %rax
 	cmpq   $0, %rax
-	jbe    label6
+	jbe    label1006
 # save callee-saved registers
 	pushq   %rcx
 	pushq   %rdx
@@ -239,9 +239,9 @@ label8:
 	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
-	jmp    label7
-label6:
-label7:
+	jmp    label1007
+label1006:
+label1007:
 	movq    $0x1, %rax
 	pushq   %rax
 	movq    -16(%rbp), %rax 	# j, 8
@@ -259,8 +259,8 @@ label7:
 	movq   %rbx, 0(%rax)
 	pushq   %rbx
 	addq    $8, %rsp
-	jmp    label3
-label4:
+	jmp    label1003
+label1004:
 	movq    $0x1, %rax
 	pushq   %rax
 	movq    -8(%rbp), %rax 	# i, 0
@@ -278,8 +278,8 @@ label4:
 	movq   %rbx, 0(%rax)
 	pushq   %rbx
 	addq    $8, %rsp
-	jmp    label0
-label1:
+	jmp    label1000
+label1001:
 L.XCC.RE.bubble_sort:
 	movq    %rbp, %rsp
 	popq    %rbp
@@ -328,7 +328,7 @@ _make_array:
 	popq   %rcx
 	pushq   %rax
 	addq    $8, %rsp
-label9:
+label1009:
 	pushq   %rsi
 	movq    -8(%rbp), %rax 	# i, 0
 	pushq   %rax
@@ -337,13 +337,13 @@ label9:
 #<
 	pushq   $1
 	cmpq   %rax, %rbx
-	jg    label11
+	jg    label1011
 	popq   %rax
 	pushq   $0
-label11:
+label1011:
 	popq   %rax
 	cmpq   $0, %rax
-	jbe    label10
+	jbe    label1010
 # save callee-saved registers
 	pushq   %rcx
 	pushq   %rdx
@@ -437,8 +437,8 @@ label11:
 	movq   %rbx, 0(%rax)
 	pushq   %rbx
 	addq    $8, %rsp
-	jmp    label9
-label10:
+	jmp    label1009
+label1010:
 L.XCC.RE.make_array:
 	movq    %rbp, %rsp
 	popq    %rbp
@@ -617,7 +617,7 @@ _main:
 	movq   %rbx, 0(%rax)
 	pushq   %rbx
 	addq    $8, %rsp
-label12:
+label1012:
 	movq    -24(%rbp), %rax 	# size, 16
 	pushq   %rax
 	movq    -8(%rbp), %rax 	# i, 0
@@ -627,13 +627,13 @@ label12:
 #<
 	pushq   $1
 	cmpq   %rax, %rbx
-	jg    label14
+	jg    label1014
 	popq   %rax
 	pushq   $0
-label14:
+label1014:
 	popq   %rax
 	cmpq   $0, %rax
-	jbe    label13
+	jbe    label1013
 # save callee-saved registers
 	pushq   %rcx
 	pushq   %rdx
@@ -694,8 +694,8 @@ label14:
 	movq   %rbx, 0(%rax)
 	pushq   %rbx
 	addq    $8, %rsp
-	jmp    label12
-label13:
+	jmp    label1012
+label1013:
 L.XCC.RE.main:
 	movq    %rbp, %rsp
 	popq    %rbp

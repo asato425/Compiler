@@ -30,7 +30,7 @@
 #endif
 static char *func_name;
 static int   total_local_size;
-int label_count = 0;
+int label_count = 1000;
 
 
 static void emit_code (struct AST *ast, char *fmt, ...);
@@ -305,6 +305,7 @@ codegen_exp (struct AST *ast)
         }else if(!strcmp (ast->child [0]->ast_type, "AST_unary_operator_minus")){
             emit_code (ast, "\tpopq   %%rax\n");//結果をスタックから取得
             emit_code (ast, "\tneg   %%rax\n");//符号反転
+            emit_code (ast, "\tpushq   %%rax\n");//結果をpush
         }else if(!strcmp (ast->child [0]->ast_type, "AST_unary_operator_negative")){
             emit_code (ast, "\tpopq   %%rax\n");//結果をスタックから取得
             emit_code (ast, "\tmovq   $0, %%rbx\n");
@@ -410,7 +411,7 @@ codegen_exp (struct AST *ast)
                 struct Symbol *sym_right = NULL;
                 if(!strcmp (ast->child[0]->ast_type, "AST_expression_id")) sym_left = sym_lookup (ast->child[0]->child[0]->u.id);
                 if(!strcmp (ast->child[1]->ast_type, "AST_expression_id")) sym_right = sym_lookup (ast->child[1]->child[0]->u.id);
-                
+
                 if(sym_left != NULL){
                     if(sym_left->type->kind == TYPE_KIND_POINTER){
                         if((sym_right == NULL) || (sym_right->type->kind != TYPE_KIND_POINTER)){
@@ -449,7 +450,6 @@ codegen_exp (struct AST *ast)
             }
         }
     }
-    
 }
 
 static void
@@ -500,7 +500,15 @@ codegen_stmt (struct AST *ast_stmt)
 
         emit_code (ast_stmt, "label%d:\n", label2);
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_goto")) {
+        printf("#goto\n");
+        if(ast_stmt->num_child != 1) assert(0);
+        emit_code (ast_stmt, "\tjmp    %s\n", ast_stmt->child [0]->u.id);
+
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_label")) {
+        printf("#label\n");
+        if(ast_stmt->num_child != 2) assert(0);
+        emit_code (ast_stmt, "%s:\n", ast_stmt->child [0]->u.id);
+        codegen_stmt (ast_stmt->child [1]);
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_return")) {
         if (!strcmp (ast_stmt->child [0]->ast_type, "AST_expression_opt_single")) {
             codegen_exp (ast_stmt->child [0]->child [0]);
