@@ -184,7 +184,8 @@ codegen_exp_id (struct AST *ast)//変数の値またはアドレスをスタッ�
                 emit_code (ast, "\tleaq    _%s(%%rip), %%rax\n", sym->name);
                 emit_code (ast, "\tpushq   %%rax\n");//=の左辺のアドレスをpush
             }else{
-                emit_code (ast, "\tpushq   _%s(%%rip)\n", sym->name);
+                emit_code (ast, "\tmovq    _%s(%%rip), %%rax\n", sym->name);
+                emit_code (ast, "\tpushq   %%rax\n");//値をpush
             }
         }
 	break;
@@ -234,7 +235,7 @@ codegen_exp_funcall (struct AST *ast_func)
             } else {
                 assert (0);
             }
-            args_size += ROUNDUP_LONG (ast_exp->type->size);//何をしている？
+            args_size += ROUNDUP_LONG (ast_exp->type->size);
             codegen_exp (ast_exp);
             if (!strcmp (ast->ast_type,
                         "AST_argument_expression_list_single"))
@@ -283,12 +284,14 @@ codegen_exp (struct AST *ast)
         codegen_exp_id (ast);
     } else if (   !strcmp (ast->ast_type, "AST_expression_funcall1")
                 || !strcmp (ast->ast_type, "AST_expression_funcall2")) {
-	codegen_exp_funcall (ast);
+        codegen_exp_funcall (ast);
     }else if(!strcmp (ast->ast_type, "AST_expression_paren")){// ( expression )
         printf("#(expression)\n");
-        if(ast->num_child != 1) assert(0);
+        assert(ast->num_child == 1);
         codegen_exp(ast->child [0]);
     }else if(!strcmp (ast->ast_type, "AST_expression_unary")){//単項演算子 expression
+        printf("#単項演算子\n");
+        assert(ast->num_child == 2);
         codegen_exp(ast->child [1]);//結果をスタックにプッシュ
         if(!strcmp (ast->child [0]->ast_type, "AST_unary_operator_address")){
             /* nothing to do */
@@ -317,7 +320,7 @@ codegen_exp (struct AST *ast)
             assert (0);
         }
     }else if(!strcmp (ast->ast_type, "AST_expression_assign")){//expression = expression
-        if(ast->num_child != 2) assert(0);
+        assert(ast->num_child == 2);
         codegen_exp(ast->child [1]);//右辺の結果をスタックにプッシュ
         codegen_exp(ast->child [0]);//左辺のアドレスをスタックにプッシュ
 
@@ -332,6 +335,7 @@ codegen_exp (struct AST *ast)
             printf("#||\n");
             int label1 = label_count;
             label_count += 1;
+            assert(ast->num_child == 2);
             codegen_exp(ast->child [0]);//左の結果をスタックにプッシュ
             emit_code (ast, "\tpopq   %%rax\n");//左の結果をレジスタに格納
             emit_code (ast, "\tcmpq   $0, %%rax\n");//左の結果比較
@@ -340,15 +344,13 @@ codegen_exp (struct AST *ast)
 
             emit_code (ast, "\tpopq   %%rax\n");//左の結果を捨てる
             codegen_exp(ast->child [1]);//右の結果をスタックにプッシュ
-            emit_code (ast, "\tpopq   %%rax\n");//右の結果をレジスタに格納
-            emit_code (ast, "\tcmpq   $0, %%rax\n");//右の結果比較
-            emit_code (ast, "\tpushq   %%rax\n");//右の結果をpush
             emit_code (ast, "label%d:\n", label1);
 
         }else if(!strcmp (ast->ast_type, "AST_expression_land")){// &&
             printf("#&&\n");
             int label1 = label_count;
             label_count += 1;
+            assert(ast->num_child == 2);
             codegen_exp(ast->child [0]);//左の結果をスタックにプッシュ
             emit_code (ast, "\tpopq   %%rax\n");//左の結果をレジスタに格納
             emit_code (ast, "\tcmpq   $0, %%rax\n");//左の結果比較
@@ -357,12 +359,10 @@ codegen_exp (struct AST *ast)
 
             emit_code (ast, "\tpopq   %%rax\n");//左の結果を捨てる
             codegen_exp(ast->child [1]);//右の結果をスタックにプッシュ
-            emit_code (ast, "\tpopq   %%rax\n");//右の結果をレジスタに格納
-            emit_code (ast, "\tcmpq   $0, %%rax\n");//右の結果比較
-            emit_code (ast, "\tpushq   %%rax\n");//右の結果をpush
             emit_code (ast, "label%d:\n", label1);
         }
         else{
+            assert(ast->num_child == 2);
             codegen_exp(ast->child [1]);//右の結果をスタックにプッシュ
             codegen_exp(ast->child [0]);//左の結果をスタックにプッシュ
             emit_code (ast, "\tpopq   %%rax\n");//左の結果をレジスタに格納
@@ -416,24 +416,20 @@ codegen_exp (struct AST *ast)
                     if(sym_left->type->kind == TYPE_KIND_POINTER){
                         if((sym_right == NULL) || (sym_right->type->kind != TYPE_KIND_POINTER)){
                             emit_code (ast, "\timulq   $8, %%rbx\n");//long型のみ
-                        }else if((sym_right != NULL) && (sym_right->type->kind == TYPE_KIND_POINTER)){
-                            emit_code (ast, "\tpopq   %%rax\n");//一旦退避
-                            emit_code (ast, "\tmovq   %%rbx, %%rax\n");//割られる数に移動
-                            emit_code (ast, "\tmovq   $8, %%rbx\n");//割る数をセット、longのみ
-                            emit_code (ast, "\tcltd\n");
-                            emit_code (ast, "\tdivq   %%rbx\n");//商
-                            emit_code (ast, "\tmovq   %%rax, %%rbx\n");//右完了
-
-                            emit_code (ast, "\tpushq   %%rax\n");//左を戻す
-                            emit_code (ast, "\tmovq   $8, %%rcx\n");//割る数をセット、longのみ
-                            emit_code (ast, "\tcltd\n");
-                            emit_code (ast, "\tdivq   %%rcx\n");//商
                         }
                     }else if((sym_right != NULL) && (sym_right->type->kind == TYPE_KIND_POINTER)){
                         assert(0);
                     }
                 }
                 emit_code (ast, "\tsubq   %%rbx, %%rax\n");//差
+
+                if((sym_left != NULL) && (sym_right != NULL)){
+                    if((sym_left->type->kind == TYPE_KIND_POINTER) && (sym_right->type->kind == TYPE_KIND_POINTER)){
+                        emit_code (ast, "\tmovq   $8, %%rbx\n");//割る数をセット、longのみ
+                        emit_code (ast, "\tcqto\n");
+                        emit_code (ast, "\tdivq   %%rbx\n");
+                    }
+                }
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush
             }else if(!strcmp (ast->ast_type, "AST_expression_mul")){// *
                 printf("#*\n");
@@ -442,7 +438,7 @@ codegen_exp (struct AST *ast)
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush(下位64ビットのみ)
             }else if(!strcmp (ast->ast_type, "AST_expression_div")){// /
                 printf("#/\n");
-                emit_code (ast, "\tcltd\n");
+                emit_code (ast, "\tcqto\n");
                 emit_code (ast, "\tdivq   %%rbx\n");//商
                 emit_code (ast, "\tpushq   %%rax\n");//結果をpush
             } else {
@@ -467,7 +463,7 @@ codegen_stmt (struct AST *ast_stmt)
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_comp")) {
         codegen_block (ast_stmt->child [0]);
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_if") || !strcmp (ast_stmt->ast_type, "AST_statement_ifelse")) {
-        if(!(ast_stmt->num_child == 2 || ast_stmt->num_child == 3)) assert(0);
+        assert((ast_stmt->num_child == 2 || ast_stmt->num_child == 3));
         int label1 = label_count;
         int label2 = label_count+1;
         label_count += 2;
@@ -475,7 +471,7 @@ codegen_stmt (struct AST *ast_stmt)
 
         emit_code (ast_stmt, "\tpopq   %%rax\n");//条件の結果を取得
         emit_code (ast_stmt, "\tcmpq   $0, %%rax\n");//比較
-        emit_code (ast_stmt, "\tjbe    label%d\n", label1);//間違っていればジャンプ
+        emit_code (ast_stmt, "\tje    label%d\n", label1);//間違っていればジャンプ
         
         codegen_stmt (ast_stmt->child [1]);//ifの中身
         emit_code (ast_stmt, "\tjmp    label%d\n", label2);//ジャンプ
@@ -484,7 +480,8 @@ codegen_stmt (struct AST *ast_stmt)
         emit_code (ast_stmt, "label%d:\n", label2);
 
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_while")) {
-        if(ast_stmt->num_child != 2) assert(0);
+        printf("#while\n");
+        assert(ast_stmt->num_child == 2);
         int label1 = label_count;
         int label2 = label_count+1;
         label_count += 2;
@@ -493,7 +490,7 @@ codegen_stmt (struct AST *ast_stmt)
 
         emit_code (ast_stmt, "\tpopq   %%rax\n");//条件の結果を取得
         emit_code (ast_stmt, "\tcmpq   $0, %%rax\n");//比較
-        emit_code (ast_stmt, "\tjbe    label%d\n", label2);//間違っていればジャンプ
+        emit_code (ast_stmt, "\tje    label%d\n", label2);//間違っていればジャンプ
         
         codegen_stmt (ast_stmt->child [1]);//whileの中身
         emit_code (ast_stmt, "\tjmp    label%d\n", label1);//ループ
@@ -501,12 +498,12 @@ codegen_stmt (struct AST *ast_stmt)
         emit_code (ast_stmt, "label%d:\n", label2);
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_goto")) {
         printf("#goto\n");
-        if(ast_stmt->num_child != 1) assert(0);
+        assert(ast_stmt->num_child == 1);
         emit_code (ast_stmt, "\tjmp    %s\n", ast_stmt->child [0]->u.id);
 
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_label")) {
         printf("#label\n");
-        if(ast_stmt->num_child != 2) assert(0);
+        assert(ast_stmt->num_child == 2);
         emit_code (ast_stmt, "%s:\n", ast_stmt->child [0]->u.id);
         codegen_stmt (ast_stmt->child [1]);
     } else if (!strcmp (ast_stmt->ast_type, "AST_statement_return")) {
